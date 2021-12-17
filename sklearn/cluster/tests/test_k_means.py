@@ -1205,3 +1205,43 @@ def test_is_same_clustering():
     # mapped to a same value
     labels3 = np.array([1, 0, 0, 2, 2, 0, 2, 1], dtype=np.int32)
     assert not _is_same_clustering(labels1, labels3, 3)
+
+
+@pytest.mark.parametrize(
+    "params, err_type, err_msg",
+    [
+        ({"n_init": -1}, ValueError, "n_init == -1, must be > 0."),
+        ({"n_init": 0}, ValueError, "n_init == 0, must be > 0."),
+        (
+            {"n_init": 1.5},
+            TypeError,
+            "n_init must be an instance of <class 'numbers.Integral'>, not <class"
+            " 'float'>.",
+         ),
+        ({"max_iter": 0}, ValueError, "max_iter == 0, must be >= 1."),
+        (
+            {"max_iter": 1.5},
+            TypeError,
+            "max_iter must be an instance of <class 'numbers.Integral'>, not <class"
+            " 'float'>.",
+        ),
+        ({"n_clusters": 0}, ValueError, "n_clusters == 0, must be >= 1."),
+        (
+            {"n_clusters": 2.5},
+            TypeError,
+            "n_clusters must be an instance of <class 'numbers.Integral'>, not <class"
+            " 'float'>.",
+        ),
+        ({"n_clusters": -3}, ValueError, "n_clusters == -3, must be >= 1."),
+        (
+            {"verbose": 0.5},
+            TypeError,
+            "verbose must be an instance of <class 'numbers.Integral'>, not <class"
+            " 'float'>.",),
+    ],
+)
+def test_kmeans_params_validation(params, err_type, err_msg):
+    """Check the parameters validation in `KMeans`."""
+    X = make_blobs(n_samples=200, n_features=4, centers=4)
+    with pytest.raises(err_type, match=err_msg):
+        KMeans(**params).fit(X)
