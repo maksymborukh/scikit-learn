@@ -14,6 +14,7 @@
 import warnings
 
 import numpy as np
+import numbers
 import scipy.sparse as sp
 
 from ..base import BaseEstimator, ClusterMixin, TransformerMixin
@@ -26,6 +27,7 @@ from ..utils.sparsefuncs_fast import assign_rows_csr
 from ..utils.sparsefuncs import mean_variance_axis
 from ..utils import check_array
 from ..utils import check_random_state
+from ..utils import check_scalar
 from ..utils import deprecated
 from ..utils.validation import check_is_fitted, _check_sample_weight
 from ..utils._openmp_helpers import _openmp_effective_n_threads
@@ -944,15 +946,6 @@ class KMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.algorithm = algorithm
 
     def _check_params(self, X):
-        # n_init
-        if self.n_init <= 0:
-            raise ValueError(f"n_init should be > 0, got {self.n_init} instead.")
-        self._n_init = self.n_init
-
-        # max_iter
-        if self.max_iter <= 0:
-            raise ValueError(f"max_iter should be > 0, got {self.max_iter} instead.")
-
         # n_clusters
         if X.shape[0] < self.n_clusters:
             raise ValueError(
@@ -1160,6 +1153,12 @@ class KMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         )
 
         self._check_params(X)
+
+        check_scalar(self._n_init, "_n_init", target_type=numbers.Integral, min_val=1)
+        check_scalar(self.max_iter, "max_iter", target_type=numbers.Integral, min_val=1)
+        check_scalar(self.n_clusters, "n_clusters", target_type=numbers.Integral, min_val=1)
+        check_scalar(self.verbose, "verbose", target_type=numbers.Integral)
+
         random_state = check_random_state(self.random_state)
         sample_weight = _check_sample_weight(sample_weight, X, dtype=X.dtype)
         self._n_threads = _openmp_effective_n_threads()
